@@ -4,7 +4,563 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wall of Fame</title>
+    <style><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wall of Fame</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+        }
+
+        .header h1 {
+            color: #FFD700;
+            font-size: 3em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .trophy-icon {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        .trophy-icon svg {
+            width: 70px;
+            height: 70px;
+            fill: #FFD700;
+        }
+
+        .admin-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-weight: bold;
+            color: #8B0000;
+            z-index: 1000;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .awards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .award-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .award-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .award-card::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 4px;
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700);
+            border-radius: 2px;
+        }
+
+        .photo-frame {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 5px solid #FFD700;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-placeholder {
+            color: #999;
+            font-size: 3em;
+        }
+
+        .edit-photo-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: #8B0000;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 18px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-mode .edit-photo-btn {
+            display: flex;
+        }
+
+        .award-title {
+            color: #8B0000;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .employee-name {
+            color: #333;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            min-height: 30px;
+        }
+
+        .achievement {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
+            font-style: italic;
+            min-height: 60px;
+        }
+
+        .editable {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .admin-mode .editable:hover {
+            background: #fffacd;
+            outline: 2px dashed #FFD700;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            color: #8B0000;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: Arial, sans-serif;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #8B0000;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button {
+            flex: 1;
+            background: linear-gradient(135deg, #8B0000, #DC143C);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            font-weight: bold;
+        }
+
+        .button:hover {
+            transform: scale(1.02);
+        }
+
+        .button.secondary {
+            background: #666;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px;
+            background: #f0f0f0;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .file-input-label:hover {
+            background: #e0e0e0;
+        }
+
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #FFD700;
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        @media (max-width: 1024px) {
+            .awards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .awards-grid {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 2em;
+                letter-spacing: 4px;
+            }
+            .admin-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 8px 16px;
+                font-size: 0.9em;
+            }
+        }
+
+        .help-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <div class="admin-toggle" onclick="toggleAdminMode()">
+        <span id="adminToggleText">🔒 HR Edit Mode</span>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>WALL of FAME</h1>
+            <div class="trophy-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,15.39L8.24,17.66L9.23,13.38L5.91,10.5L10.29,10.13L12,6.09L13.71,10.13L18.09,10.5L14.77,13.38L15.76,17.66M22,9.24L14.81,8.63L12,2L9.19,8.63L2,9.24L7.45,13.97L5.82,21L12,17.27L18.18,21L16.54,13.97L22,9.24Z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="awards-grid" id="awardsGrid">
+            <!-- Awards will be populated here -->
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">Edit Award</div>
+            <form id="editForm">
+                <input type="hidden" id="editIndex">
+                
+                <div class="form-group">
+                    <label for="editTitle">Award Title *</label>
+                    <input type="text" id="editTitle" required placeholder="e.g., Employee of the Month">
+                    <div class="help-text">The category or title of this award</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editName">Employee Name *</label>
+                    <input type="text" id="editName" required placeholder="e.g., John Doe">
+                </div>
+
+                <div class="form-group">
+                    <label for="editAchievement">Achievement Description *</label>
+                    <textarea id="editAchievement" required placeholder="Describe the achievement or reason for this award"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Employee Photo</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="editPhoto" accept="image/*" onchange="handlePhotoUpload(event)">
+                        <label for="editPhoto" class="file-input-label">
+                            📷 Click to upload photo
+                        </label>
+                    </div>
+                    <div class="help-text">Or paste image URL below:</div>
+                    <input type="text" id="editPhotoUrl" placeholder="https://example.com/photo.jpg" style="margin-top: 10px;">
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="button secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="button">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize awards data
+        let awards = [
+            { title: "Associate of the Month", name: "", achievement: "", photo: "" },
+            { title: "Executive of the Month", name: "", achievement: "", photo: "" },
+            { title: "Manager of the Month", name: "", achievement: "", photo: "" },
+            { title: "Team Player Award", name: "", achievement: "", photo: "" },
+            { title: "Innovation Award", name: "", achievement: "", photo: "" },
+            { title: "Leadership Excellence", name: "", achievement: "", photo: "" }
+        ];
+
+        let isAdminMode = false;
+        let currentEditIndex = null;
+
+        // Create stars background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Toggle admin mode
+        function toggleAdminMode() {
+            isAdminMode = !isAdminMode;
+            document.body.classList.toggle('admin-mode', isAdminMode);
+            document.getElementById('adminToggleText').textContent = 
+                isAdminMode ? '✏️ Editing Mode ON' : '🔒 HR Edit Mode';
+        }
+
+        // Render awards
+        function renderAwards() {
+            const grid = document.getElementById('awardsGrid');
+            grid.innerHTML = '';
+
+            awards.forEach((award, index) => {
+                const card = document.createElement('div');
+                card.className = 'award-card';
+                card.innerHTML = `
+                    <div class="photo-frame" onclick="${isAdminMode ? `openEditModal(${index})` : ''}">
+                        ${award.photo ? 
+                            `<img src="${award.photo}" alt="${award.name}">` : 
+                            '<span class="photo-placeholder">👤</span>'
+                        }
+                        <button class="edit-photo-btn" onclick="openEditModal(${index})">✏️</button>
+                    </div>
+                    <div class="award-title editable" onclick="${isAdminMode ? `openEditModal(${index})` : ''}">${award.title || 'Click to Edit'}</div>
+                    <div class="employee-name editable" onclick="${isAdminMode ? `openEditModal(${index})` : ''}">${award.name || 'No Winner Yet'}</div>
+                    <div class="achievement editable" onclick="${isAdminMode ? `openEditModal(${index})` : ''}">${award.achievement || 'Stay tuned for the next winner!'}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Open edit modal
+        function openEditModal(index) {
+            if (!isAdminMode) return;
+            
+            currentEditIndex = index;
+            const award = awards[index];
+            
+            document.getElementById('editIndex').value = index;
+            document.getElementById('editTitle').value = award.title;
+            document.getElementById('editName').value = award.name;
+            document.getElementById('editAchievement').value = award.achievement;
+            document.getElementById('editPhotoUrl').value = award.photo;
+            
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            document.getElementById('editForm').reset();
+        }
+
+        // Handle photo upload
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('editPhotoUrl').value = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const index = currentEditIndex;
+            const photoUrl = document.getElementById('editPhotoUrl').value;
+            
+            awards[index] = {
+                title: document.getElementById('editTitle').value,
+                name: document.getElementById('editName').value,
+                achievement: document.getElementById('editAchievement').value,
+                photo: photoUrl
+            };
+
+            renderAwards();
+            closeModal();
+            alert('Award updated successfully! ✅');
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        createStars();
+        renderAwards();
+    </script>
+</body>
+</html>
         * {
             margin: 0;
             padding: 0;
@@ -386,4 +942,5 @@
         renderAwards();
     </script>
 </body>
+
 </html>
